@@ -55,7 +55,7 @@ POST api/auth/users
 ### request
 
 ```
-POST auth/login
+POST auth/token/login
 
 {
   "username": "admin",
