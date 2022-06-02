@@ -30,8 +30,6 @@ books_router.register(
     basename="book_records",
 )
 
-handler500 = "rest_framework.exceptions.server_error"
-handler400 = "rest_framework.exceptions.bad_request"
 
 urlpatterns = [
     path("api/", include(router.urls)),

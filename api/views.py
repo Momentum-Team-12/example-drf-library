@@ -50,7 +50,7 @@ class BookRecordViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             return super().create(request, *args, **kwargs)
-        except IntegrityError as error:
+        except IntegrityError:
             error_data = {
                 "error": "Unique constraint violation: this user has already created a book record for this book."
             }
