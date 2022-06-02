@@ -12,6 +12,10 @@ Users can also write reviews on books, which should be viewable to all users. Op
 
 **All requests, except registration and log in, require authentication**.
 
+## Base URL
+
+All endpoints begin with `https://drf-library-api.herokuapp.com`
+
 ## Required Headers
 
 Requests to endpoints requiring authentication should set the `Authorization` header to `Token <token>`, where `<token>` is the token received in the login response.
