@@ -31,6 +31,18 @@ class BookViewSet(ModelViewSet):
             return BookSerializer
         return super().get_serializer_class()
 
+    def get_queryset(self):
+        # if there are query params, and there is a key for "search", use that search term to filter the queryset
+        search_term = self.request.query_params.get("search")
+        if search_term is not None:
+            results = Book.objects.filter(
+                title__icontains=self.request.query_params.get("search")
+            )
+        else:
+            # if there is no query param, use the default queryset
+            results = self.queryset
+        return results
+
     @action(detail=False)
     def featured(self, request):
         featured_books = Book.objects.filter(featured=True)
@@ -66,7 +78,12 @@ class BookReviewListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return BookReview.objects.filter(book_id=self.kwargs["book_pk"])
+        queryset = BookReview.objects.filter(book_id=self.kwargs["book_pk"])
+        search_term = self.request.query_params.get("search")
+        if search_term is not None:
+            ## this is using the search method for postgres full-text search
+            queryset = queryset.filter(body__search=search_term)
+        return queryset
 
     def perform_create(self, serializer, **kwargs):
         book = get_object_or_404(Book, pk=self.kwargs["book_pk"])
