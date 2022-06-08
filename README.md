@@ -55,7 +55,7 @@ POST api/auth/users
 ### request
 
 ```
-POST auth/token/login
+POST api/auth/token/login
 
 {
   "username": "admin",
@@ -71,9 +71,19 @@ POST auth/token/login
 }
 ```
 
+## Log Out
+
+## request
+
+Authentication required. No body should be included in the POST request.
+
+```
+POST api/auth/token/logout
+```
+
 ## List all books
 
-Requires authentication.
+Requires Aauthentication.
 
 ### request
 
