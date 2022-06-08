@@ -2,10 +2,15 @@ from django.db import IntegrityError
 from django.views.defaults import bad_request
 from psycopg2.errors import UniqueViolation
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action, permission_classes
 from rest_framework.exceptions import PermissionDenied, ParseError
-from rest_framework.generics import CreateAPIView, ListCreateAPIView, get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveDestroyAPIView,
+    get_object_or_404,
+)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from .models import Book, BookRecord, BookReview
@@ -14,11 +19,14 @@ from .serializers import (
     BookDetailSerializer,
     BookRecordSerializer,
     BookReviewSerializer,
+    FavoriteSerializer,
 )
 from .custom_permissions import (
     IsAdminOrReadOnly,
     IsReaderOrReadOnly,
 )
+from api import serializers
+from django.db.models import Count
 
 
 class BookViewSet(ModelViewSet):
@@ -49,6 +57,12 @@ class BookViewSet(ModelViewSet):
         serializer = self.get_serializer(featured_books, many=True)
         return Response(serializer.data)
 
+    @action(detail=False)
+    def favorites(self, request):
+        favorited_books = request.user.favorite_books.all()
+        serializer = self.get_serializer(favorited_books, many=True)
+        return Response(serializer.data)
+
 
 class BookRecordViewSet(ModelViewSet):
     queryset = BookRecord.objects.all()
@@ -73,6 +87,11 @@ class BookRecordViewSet(ModelViewSet):
         serializer.save(reader=self.request.user, book=book)
 
 
+class BookReviewDetailView(RetrieveDestroyAPIView):
+    serializer_class = BookReviewSerializer
+    queryset = BookReview.objects.all()
+
+
 class BookReviewListCreateView(ListCreateAPIView):
     serializer_class = BookReviewSerializer
     permission_classes = [IsAuthenticated]
@@ -88,3 +107,19 @@ class BookReviewListCreateView(ListCreateAPIView):
     def perform_create(self, serializer, **kwargs):
         book = get_object_or_404(Book, pk=self.kwargs["book_pk"])
         serializer.save(reviewed_by=self.request.user, book=book)
+
+
+class CreateFavoriteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, **kwargs):
+        # I need to know the user
+        user = self.request.user
+        # I need to know the book
+        book = get_object_or_404(Book, pk=self.kwargs["book_pk"])
+        # I need to add the book to the user's favorites
+        user.favorite_books.add(book)
+        # use a serializer to serialize data about the book we just favorited
+        serializer = BookDetailSerializer(book, context={"request": request})
+        # return a response
+        return Response(serializer.data, status=201)
