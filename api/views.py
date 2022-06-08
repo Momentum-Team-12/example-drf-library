@@ -19,7 +19,6 @@ from .serializers import (
     BookDetailSerializer,
     BookRecordSerializer,
     BookReviewSerializer,
-    FavoriteSerializer,
 )
 from .custom_permissions import (
     IsAdminOrReadOnly,
