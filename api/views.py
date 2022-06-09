@@ -47,8 +47,17 @@ class BookViewSet(ModelViewSet):
             )
         else:
             # if there is no query param, use the default queryset
-            results = self.queryset
+            results = super().get_queryset()
         return results
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            error_data = {
+                "error": "Unique constraint violation: there is already a book with this title by this author."
+            }
+            return Response(error_data, status=400)
 
     @action(detail=False)
     def featured(self, request):
